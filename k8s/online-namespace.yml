@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: online-ns
+  labels:
+    name: online-ns
+    environment: production

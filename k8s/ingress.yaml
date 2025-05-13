@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: online-ingress
+  namespace: online-ns
+  labels:
+    name: online-ingress
+    environment: production
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - online.3.81.171.157.nip.io
+    secretName: online-tls-secret  # Cert-Manager will manage this
+  rules:
+  - host: online.3.81.171.157.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: online-service
+
+            port:
+              number: 80
