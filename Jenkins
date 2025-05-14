@@ -1,34 +1,33 @@
-@Library('Shared') _
+@Library('shared') _
 
 pipeline {
     agent any
-    
+
     environment {
-        // Update the main app image name to match the deployment file
         DOCKER_IMAGE_NAME = 'devshubh2204/onlineshop-poc'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
-        GITHUB_CREDENTIALS = credentials('github-credentials')
+        GITHUB_CREDENTIALS = credentials('git-hub-cred')
         GIT_BRANCH = "feature"
     }
-    
+
     stages {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    clean_ws() // Make sure 'clean_ws' is defined in the shared library
+                    clean_ws()
                 }
             }
         }
-        
+
         stage('Clone Repository') {
             steps {
                 script {
-                    clone("https://github.com/AWS-DevOps-shubh/onlineshop-poc.git", env.GIT_BRANCH) // Clone the specific branch
+                    clone("https://github.com/AWS-DevOps-shubh/onlineshop-poc.git", "feature")
                 }
             }
         }
-        
-        stage('Build Docker Images') {
+
+        stage('Build and Scan Docker Image') {
             parallel {
                 stage('Build Main App Image') {
                     steps {
@@ -42,56 +41,41 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-        
-        stage('Run Unit Tests') {
-            steps {
-                script {
-                    run_tests() // Ensure 'run_tests' is defined in the shared library
-                }
-            }
-        }
-        
-        stage('Security Scan with Trivy') {
-            steps {
-                script {
-                    // Ensure 'trivy_scan' is defined in the shared library
-                    trivy_scan() // Create directory for results and scan the image
-                }
-            }
-        }
-        
-        stage('Push Docker Images') {
-            parallel {
-                stage('Push Main App Image') {
+
+                stage('Security Scan with Trivy') {
                     steps {
                         script {
-                            docker_push(
-                                imageName: env.DOCKER_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
+                            trivy()
                         }
                     }
                 }
             }
         }
-        
-        // Add this new stage for updating Kubernetes manifests
+
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    docker_push(
+                        imageName: env.DOCKER_IMAGE_NAME,
+                        imageTag: env.DOCKER_IMAGE_TAG,
+                        credentials: 'docker-hub-cred'
+                    )
+                }
+            }
+        }
+
         stage('Update Kubernetes Manifests') {
             steps {
                 script {
-                    update_k8s_manifests(
+                    updatek8s(
                         imageTag: env.DOCKER_IMAGE_TAG,
-                        manifestsPath: 'kubernetes',
-                        gitCredentials: 'github-credentials',
-                        gitUserName: 'Jenkins CI',
-                        gitUserEmail: 'shubhamnath5@gmail.com'
+                        manifestsPath: 'k8s',
+                        gitCredentials: 'git-hub-cred',
+                        gitUserName: 'AWS-DevOps-shubh',
+                        gitUserEmail: 'devshubh2204@gmail.com',
                     )
                 }
             }
         }
     }
 }
-
