@@ -5,18 +5,17 @@ pipeline {
     
     environment {
         // Update the main app image name to match the deployment file
-        DOCKER_IMAGE_NAME = 'trainwithshubham/easyshop-app'
-        DOCKER_MIGRATION_IMAGE_NAME = 'trainwithshubham/easyshop-migration'
+        DOCKER_IMAGE_NAME = 'devshubh2204/onlineshop-poc'
         DOCKER_IMAGE_TAG = "${BUILD_NUMBER}"
         GITHUB_CREDENTIALS = credentials('github-credentials')
-        GIT_BRANCH = "master"
+        GIT_BRANCH = "feature"
     }
     
     stages {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    clean_ws()
+                    clean_ws() // Make sure 'clean_ws' is defined in the shared library
                 }
             }
         }
@@ -24,7 +23,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    clone("https://github.com/LondheShubham153/tws-e-commerce-app.git","master")
+                    clone("https://github.com/AWS-DevOps-shubh/onlineshop-poc.git", env.GIT_BRANCH) // Clone the specific branch
                 }
             }
         }
@@ -43,26 +42,13 @@ pipeline {
                         }
                     }
                 }
-                
-                stage('Build Migration Image') {
-                    steps {
-                        script {
-                            docker_build(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                dockerfile: 'scripts/Dockerfile.migration',
-                                context: '.'
-                            )
-                        }
-                    }
-                }
             }
         }
         
         stage('Run Unit Tests') {
             steps {
                 script {
-                    run_tests()
+                    run_tests() // Ensure 'run_tests' is defined in the shared library
                 }
             }
         }
@@ -70,10 +56,8 @@ pipeline {
         stage('Security Scan with Trivy') {
             steps {
                 script {
-                    // Create directory for results
-                  
-                    trivy_scan()
-                    
+                    // Ensure 'trivy_scan' is defined in the shared library
+                    trivy_scan() // Create directory for results and scan the image
                 }
             }
         }
@@ -91,22 +75,10 @@ pipeline {
                         }
                     }
                 }
-                
-                stage('Push Migration Image') {
-                    steps {
-                        script {
-                            docker_push(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
-                        }
-                    }
-                }
             }
         }
         
-        // Add this new stage
+        // Add this new stage for updating Kubernetes manifests
         stage('Update Kubernetes Manifests') {
             steps {
                 script {
@@ -122,3 +94,4 @@ pipeline {
         }
     }
 }
+
