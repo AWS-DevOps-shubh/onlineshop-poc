@@ -5,7 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/iemafzalhassan/online_shop?color=red)
 [![GitHub Profile](https://img.shields.io/badge/GitHub-iemafzalhassan-blue?logo=github&style=flat)](https://github.com/iemafzalhassan)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
+done 
 ---
 
 ## Overview
@@ -14,7 +14,7 @@ This repository is a personal proof-of-concept (POC) project demonstrating a com
 
 ---
 
-## Architecture
+## Architecture:
 
 - **Jenkins Server (EC2):** For CI/CD pipeline orchestration.
 - **Docker Host (EC2):** For building, scanning, and running containers.
